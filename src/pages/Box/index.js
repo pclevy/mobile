@@ -14,7 +14,6 @@ import api from "../../services/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import styles from './styles';
-import { Function } from 'core-js';
 
 export default class Box extends Component {
   state = { box: {} };
@@ -42,14 +41,34 @@ export default class Box extends Component {
   };
 
   openFile = async file => {
+    const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
     try {
-      const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
-
+			await RNFS.downloadFile({
+				fromUrl: file.url,
+				toFile: filePath
+			});
       await FileViewer.open(filePath)
+			
     } catch (err) {
       console.log('Arquivo não suportado');
     }
-  }
+  };
+
+  renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => this.openFile(item)} style={styles.file}>
+      <View style={styles.fileInfo}>
+        <Icon name="insert-drive-file" size={24} color="#A5CFFF" />
+        <Text style={styles.fileTitle}>{item.title}</Text>
+      </View>
+
+      <Text style={styles.fileDate}>
+        há{" "}
+        {distanceInWords(item.createdAt, new Date(), {
+          locale: pt
+        })}
+      </Text>
+    </TouchableOpacity>
+  );
 
   handleUpLoad = () => {
     ImagePicker.lauchImageLibrary({}, async upload => {
@@ -68,32 +87,12 @@ export default class Box extends Component {
           uri: upload.uri,
           type: upload.type,
           name: `${prefix}.${ext}`
-        })
+        });
 
-        api.post(`boxes/${this.state.box._id}`, data);
+        api.post(`boxes/${this.state.box._id}/files`, data);
       }
-    })
+    });
   };
-
-  renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => this.openFile(item)} style={styles.file}>
-      <View style={styles.fileInfo}>
-        <Icon name="insert-drive-file" size={24} color="#A5CFFF" />
-        <Text style={styles.fileTitle}>{item.title}</Text>
-      </View>
-
-      <Text style={styles.fileDate}>
-        há{" "}
-        {distanceInWords(item.createdAt, new Date(), {
-          locale: pt
-        })}
-      </Text>
-    </TouchableOpacity>
-  )
-
-  function Alerta() {
-    alert("pressionou");
-  }
 
   render() {
     return (
@@ -108,7 +107,7 @@ export default class Box extends Component {
           renderItem={this.renderItem}
         />
 
-        <TouchableOpacity style={styles.fab} onPress={Alerta()}>
+        <TouchableOpacity style={styles.fab} onPress={this.handleUpload}>
           <Icon name="cloud-upload" size={24} color="#FFF" />
         </TouchableOpacity>
      </View>
