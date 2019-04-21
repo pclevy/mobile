@@ -14,6 +14,7 @@ import api from "../../services/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import styles from './styles';
+import { Function } from 'core-js';
 
 export default class Box extends Component {
   state = { box: {} };
@@ -90,6 +91,10 @@ export default class Box extends Component {
     </TouchableOpacity>
   )
 
+  function Alerta() {
+    alert("pressionou");
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -103,7 +108,7 @@ export default class Box extends Component {
           renderItem={this.renderItem}
         />
 
-        <TouchableOpacity style={styles.fab} onPress={this.handleUpload}>
+        <TouchableOpacity style={styles.fab} onPress={Alerta()}>
           <Icon name="cloud-upload" size={24} color="#FFF" />
         </TouchableOpacity>
      </View>
