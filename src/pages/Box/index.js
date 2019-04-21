@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import AsyncStorage from "@react-native-community/async-storage";
 import ImagePicker from 'react-native-image-picker';
+import RNFS from 'react-native-fs';
+import FileViewer from 'react-native-file-viewer';
+import socket from 'socket.io-client';
 
 import { distanceInWords } from "date-fns";
 import pt from "date-fns/locale/pt";
@@ -16,13 +19,35 @@ export default class Box extends Component {
   state = { box: {} };
 
   async componentDidMount() {
-    // this.subscribeToNewFiles();
-
     const box = await AsyncStorage.getItem('@RocketBox:box');
-    console.log(box);
+
+    this.subscribeToNewFiles(box);
+
     const response = await api.get(`boxes/${box}`);
 
     this.setState({ box: response.data });
+  }
+
+  subscribeToNewFiles = (box) => {
+    const io = socket("https://omnistack-backend-levy.herokuapp.com");
+
+    io.emit("connectRoom", box);
+
+    io.on("file", data => {
+      this.setState({
+        box: { ... this.state.box, files: [data, ... this.state.box.files] }
+      });
+    });
+  };
+
+  openFile = async file => {
+    try {
+      const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
+
+      await FileViewer.open(filePath)
+    } catch (err) {
+      console.log('Arquivo não suportado');
+    }
   }
 
   handleUpLoad = () => {
@@ -33,16 +58,24 @@ export default class Box extends Component {
       } else if (upload.didCancel) {
         console.log('Canceled by user');
       } else {
-        console.log(upload);
+        const data = new FormData();
+
+        const [prefix, suffix] = upload.fileName.split(".");
+        const ext = suffix.toLowerCase() === 'heic' ? 'jpg' :suffix;
+
+        data.append('file', {
+          uri: upload.uri,
+          type: upload.type,
+          name: `${prefix}.${ext}`
+        })
+
+        api.post(`boxes/${this.state.box._id}`, data);
       }
     })
   };
 
   renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => {}}
-      style={styles.file}
-    >
+    <TouchableOpacity onPress={() => this.openFile(item)} style={styles.file}>
       <View style={styles.fileInfo}>
         <Icon name="insert-drive-file" size={24} color="#A5CFFF" />
         <Text style={styles.fileTitle}>{item.title}</Text>
