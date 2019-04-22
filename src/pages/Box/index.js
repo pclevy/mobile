@@ -41,13 +41,15 @@ export default class Box extends Component {
   };
 
   openFile = async file => {
-    const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
     try {
+			const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
+			
 			await RNFS.downloadFile({
 				fromUrl: file.url,
 				toFile: filePath
 			});
-      await FileViewer.open(filePath)
+			
+      await FileViewer.open(filePath);
 			
     } catch (err) {
       console.log('Arquivo não suportado');
@@ -70,8 +72,8 @@ export default class Box extends Component {
     </TouchableOpacity>
   );
 
-  handleUpLoad = () => {
-    ImagePicker.lauchImageLibrary({}, async upload => {
+  handleUpload = () => {
+    ImagePicker.launchImageLibrary({}, async (upload) => {
       
       if (upload.error) {
         console.log('ImagePicker error');
