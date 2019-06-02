@@ -6,10 +6,10 @@ import RNFS from 'react-native-fs';
 import FileViewer from 'react-native-file-viewer';
 import socket from 'socket.io-client';
 
-import { distanceInWords } from "date-fns";
-import pt from "date-fns/locale/pt";
+import { distanceInWords } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 
-import api from "../../services/api";
+import api from '../../services/api';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -29,20 +29,20 @@ export default class Box extends Component {
   }
 
   subscribeToNewFiles = (box) => {
-    const io = socket("https://omnistack-backend-levy.herokuapp.com");
+    const io = socket('https://omnistack-backend-levy.herokuapp.com');
 
-    io.emit("connectRoom", box);
+    io.emit('connectRoom', box);
 
-    io.on("file", data => {
+    io.on('file', (data) => {
       this.setState({
-        box: { ... this.state.box, files: [data, ... this.state.box.files] }
+        box: { ...this.state.box, files: [data, ...this.state.box.files] }
       });
     });
   };
 
-  openFile = async file => {
+  openFile = async (file) => {
+		const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
     try {
-			const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
 			
 			await RNFS.downloadFile({
 				fromUrl: file.url,
@@ -59,12 +59,12 @@ export default class Box extends Component {
   renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => this.openFile(item)} style={styles.file}>
       <View style={styles.fileInfo}>
-        <Icon name="insert-drive-file" size={24} color="#A5CFFF" />
+        <Icon name='insert-drive-file' size={24} color='#A5CFFF' />
         <Text style={styles.fileTitle}>{item.title}</Text>
       </View>
 
       <Text style={styles.fileDate}>
-        há{" "}
+        há{' '}
         {distanceInWords(item.createdAt, new Date(), {
           locale: pt
         })}
@@ -82,8 +82,8 @@ export default class Box extends Component {
       } else {
         const data = new FormData();
 
-        const [prefix, suffix] = upload.fileName.split(".");
-        const ext = suffix.toLowerCase() === 'heic' ? 'jpg' :suffix;
+        const [prefix, suffix] = upload.fileName.split('.');
+        const ext = suffix.toLowerCase() === 'heic' ? 'jpg' : suffix;
 
         data.append('file', {
           uri: upload.uri,
@@ -104,13 +104,13 @@ export default class Box extends Component {
         <FlatList
           style={styles.list}
           data={this.state.box.files}
-          keyExtractor={file => file._id}
+          keyExtractor={(file) => file._id}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={this.renderItem}
         />
 
         <TouchableOpacity style={styles.fab} onPress={this.handleUpload}>
-          <Icon name="cloud-upload" size={24} color="#FFF" />
+          <Icon name='cloud-upload' size={24} color='#FFF' />
         </TouchableOpacity>
      </View>
     );
